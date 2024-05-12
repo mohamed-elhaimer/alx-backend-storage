@@ -1,7 +1,7 @@
 --  creates a function SafeDiv that divides (and returns).
 DELIMITER $$
 CREATE FUNCTION SafeDiv(a INT, b INT)
-RETURN FLOAT DETERMINISTIC
+RETURNS FLOAT DETERMINISTIC
 BEGIN
 DECLARE result FLOAT;
 IF b = 0
