@@ -1,2 +1,2 @@
 // insert into database
-debugger.school.insert({name: "Holberton school"})
+db.school.insert({name: "Holberton school"})
