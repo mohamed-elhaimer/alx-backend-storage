@@ -21,7 +21,6 @@ class Cache:
         value = self._redis.get(key)
         if fn:
             value = fn(value)
-            return value
         return value
     def get_str(self, key: str) -> Optional[str]:
         """get_str"""
