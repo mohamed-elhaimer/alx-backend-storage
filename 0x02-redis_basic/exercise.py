@@ -17,22 +17,24 @@ class Cache:
         return id
 
     def get(self, key: str, fn: Optional[callable] = None) -> Union[str, bytes, int, float]:
-        """convert the data back to the desired format."""
+        """convert the data back to the desired format"""
         value = self._redis.get(key)
         if fn:
             value = fn(value)
         return value
-    def get_str(self, key: str) -> Optional[str]:
-        """get_str"""
-        return self.get(key, lambda x: x.decode("utf-8"))
-    def get_int(self, key: str) -> Optional[int]:
-        """
-        Retrieve an integer value from Redis.
 
-        Args:
-            key (str): The key of the integer to retrieve.
+    def get_str(self, key: str) -> str:
+        """automatically parametrize Cache.get with the correct
+        conversion function"""
+        value = self._redis.get(key)
+        return value.decode("utf-8")
 
-        Returns:
-            Optional[int]: The integer value, or None if key does not exist.
-        """
-        return self.get(key, lambda x: int(x))
+    def get_int(self, key: str) -> int:
+        """automatically parametrize Cache.get with the correct
+        conversion function"""
+        value = self._redis.get(key)
+        try:
+            value = int(value.decode("utf-8"))
+        except Exception:
+            value = 0
+        return value
