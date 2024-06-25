@@ -2,7 +2,7 @@
 """ 12-log_stats.py """
 import redis
 import uuid
-from typing import Union, callable, Optional
+from typing import Union, Callable, Optional
 
 
 class Cache:
@@ -17,7 +17,7 @@ class Cache:
         return id
 
     def get(self, key: str,
-            fn: Optional[callable] = None) -> Union[str, bytes, int, float]:
+            fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
         """convert the data back to the desired format"""
         value = self._redis.get(key)
         if fn:
