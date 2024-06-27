@@ -22,7 +22,7 @@ def call_history(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(self, *args):
         """doc"""
-        if isinstance(self._redis, redis.Redis()):
+        if isinstance(self._redis, redis.Redis):
             methodname = method.__qualname__
             keyin = methodname + ":inputs"
             keyout = methodname + ":outputs"
