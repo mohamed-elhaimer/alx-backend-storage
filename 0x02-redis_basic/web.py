@@ -2,31 +2,40 @@
 """
 Implementing an expiring web cache and tracker
 """
-import requests
-from typing import Callable
-from functools import wraps
 import redis
+import requests
+from functools import wraps
+
+r = redis.Redis()
 
 
-def Mydecorator(fun: Callable) -> Callable:
-    """ Track a web page """
-    @wraps(fun)
+def url_access_count(method):
+    """decorator for get_page function"""
+    @wraps(method)
     def wrapper(url):
-        """ wrapper for a get page function """
-        client = redis.Redis()
-        client.incr(f'count:{url}')
-        cached_page = client.get(f'{url}')
-        if cached_page:
-            return cached_page.decode('utf-8')
-        page = fun(url)
-        client.set(f'{url}', page, 10)
+        """wrapper function"""
+        key = "cached:" + url
+        cached_value = r.get(key)
+        if cached_value:
+            return cached_value.decode("utf-8")
 
-        return page
+            # Get new content and update cache
+        key_count = "count:" + url
+        html_content = method(url)
+
+        r.incr(key_count)
+        r.set(key, html_content, ex=10)
+        r.expire(key, 10)
+        return html_content
     return wrapper
 
 
-@Mydecorator
+@url_access_count
 def get_page(url: str) -> str:
-    """ Implementing an expiring web cache and tracker """
-    response = requests.get(url)
-    return response.text
+    """obtain the HTML content of a particular"""
+    results = requests.get(url)
+    return results.text
+
+
+if __name__ == "__main__":
+    get_page('http://slowwly.robertomurray.co.uk')
