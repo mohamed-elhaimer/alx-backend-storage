@@ -18,19 +18,22 @@ def count_calls(method: Callable) -> Callable:
 
 
 def call_history(method: Callable) -> Callable:
-    """store the input and output"""
+    """ store the inputs and outputs """
     @wraps(method)
-    def wrapper(self, *args):
-        """doc"""
+    def wrapper(self, *args) -> Any:
+        """ invoke the given methods after add """
         if isinstance(self._redis, redis.Redis):
             methodname = method.__qualname__
-            keyin = methodname + ":inputs"
-            keyout = methodname + ":outputs"
-            input = str(args)
-            self._redis.rpush(keyin, input)
-            output = method(self, *args)
-            self._redis.rpush(keyout, output)
-        return output
+            keyin = methodname + ':inputs'
+            keyout = methodname + ':outputs'
+
+            inputs = str(args)
+            self._redis.rpush(keyin, inputs)
+
+            out = method(self, *args)
+            self._redis.rpush(keyout, out)
+
+        return out
     return wrapper
 
 
