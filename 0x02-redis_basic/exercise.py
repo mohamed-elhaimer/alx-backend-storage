@@ -18,22 +18,16 @@ def count_calls(method: Callable) -> Callable:
 
 
 def call_history(method: Callable) -> Callable:
-    """ store the inputs and outputs """
+    """store the history of inputs and outputs"""
     @wraps(method)
-    def wrapper(self, *args) -> Any:
-        """ invoke the given methods after add """
-        if isinstance(self._redis, redis.Redis):
-            methodname = method.__qualname__
-            keyin = methodname + ':inputs'
-            keyout = methodname + ':outputs'
+    def wrapper(self, *args, **kwargs):
+        """wrapper for the decorated function"""
+        input = str(args)
+        self._redis.rpush(method.__qualname__ + ":inputs", input)
+        output = str(method(self, *args, **kwargs))
+        self._redis.rpush(method.__qualname__ + ":outputs", output)
+        return output
 
-            inputs = str(args)
-            self._redis.rpush(keyin, inputs)
-
-            out = str(method(self, *args))
-            self._redis.rpush(keyout, out)
-
-        return out
     return wrapper
 
 
