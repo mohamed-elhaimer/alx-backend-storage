@@ -1,45 +1,44 @@
 #!/usr/bin/env python3
-""" Log stats - new version """
+""" Logs Nginx from MongoDB and prints stats
+"""
 from pymongo import MongoClient
 
 
-def nginx_stats_check():
-    """ provides some stats about Nginx logs stored in MongoDB:"""
-    client = MongoClient()
+def stats():
+    """ stats function """
+    client = MongoClient('mongodb://127.0.0.1:27017')
     collection = client.logs.nginx
-
-    num_of_docs = collection.count_documents({})
-    print("{} logs".format(num_of_docs))
+    print(f"{collection.count_documents({})} logs")
     print("Methods:")
-    methods_list = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-    for method in methods_list:
-        method_count = collection.count_documents({"method": method})
-        print("\tmethod {}: {}".format(method, method_count))
-    status = collection.count_documents({"method": "GET", "path": "/status"})
-    print("{} status check".format(status))
-
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    for method in methods:
+        count = collection.count_documents({"method": method})
+        print(f"\tmethod {method}: {count}")
+    status_get = collection.count_documents(
+        {'method': 'GET', 'path': '/status'})
+    print(f"{status_get} status check")
     print("IPs:")
-
-    top_IPs = collection.aggregate([
-        {"$group":
-         {
-             "_id": "$ip",
-             "count": {"$sum": 1}
-         }
-         },
-        {"$sort": {"count": -1}},
-        {"$limit": 10},
-        {"$project": {
-            "_id": 0,
-            "ip": "$_id",
-            "count": 1
-        }}
-    ])
-    for top_ip in top_IPs:
-        count = top_ip.get("count")
-        ip_address = top_ip.get("ip")
-        print("\t{}: {}".format(ip_address, count))
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$ip",
+                "count": {
+                    "$sum": 1
+                }
+            }
+        },
+        {
+            "$sort": {
+                "count": -1
+            }
+        },
+        {
+            "$limit": 10
+        }
+    ]
+    for doc in collection.aggregate(pipeline):
+        print(f"\t{doc['_id']}: {doc['count']}")
 
 
 if __name__ == "__main__":
-    nginx_stats_check()
+    stats()
